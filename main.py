@@ -292,15 +292,22 @@ def main_worker(args):
     logging.info('data regime: %s', train_data)
     args.start_epoch = max(args.start_epoch, 0)
     trainer.training_steps = args.start_epoch * len(train_data)
+    cmu_time = 0
     for epoch in range(args.start_epoch, args.epochs):
         trainer.epoch = epoch
         train_data.set_epoch(epoch)
         val_data.set_epoch(epoch)
         logging.info('\nStarting Epoch: {0}\n'.format(epoch + 1))
 
+        st_time = time.time()
         # train for one epoch
         train_results = trainer.train(train_data.get_loader(),
                                       chunk_batch=args.chunk_batch)
+        train_time = time.time() - st_time
+        cmu_time += train_time
+
+        print("--- %s This training round seconds ---" % (train_time))
+        print("--- %s Total Cumulative seconds ---" % (cmu_time))
 
         # evaluate on validation set
         val_results = trainer.validate(val_data.get_loader())
